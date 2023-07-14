@@ -10,7 +10,7 @@ window = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption('Tic Tac Toe')
 
 class Game:
-    def __init__(self, score):
+    def __init__(self, score: list[int]):
         self.matrix = [[None]*3 for _ in range(3)]
         self.turn = choice(['x', 'o'])
         self.over = False
@@ -22,23 +22,29 @@ class Game:
         self.loadImages()
     
     def loadImages(self):
+        ''' Helper function to load all the images '''
         self.cross = pygame.transform.scale(pygame.image.load('x.png'), (80, 80))
         self.o = pygame.transform.scale(pygame.image.load('o.png'), (80, 80))
         self.redline_hor = pygame.image.load('red-line.png')
         self.redline_ver = pygame.transform.rotate(self.redline_hor, 90)
+        # Diagonal 2 is /
         self.redline_dia2 = pygame.transform.rotate(pygame.transform.scale(self.redline_hor, (sqrt(2)*300, 30)), 45)
+        # Diagonal 1 is \
         self.redline_dia1 = pygame.transform.rotate(self.redline_dia2, 90)
+        # Saving and exporting all the images as lists
         self.lines = [self.redline_hor, self.redline_ver, self.redline_dia1, self.redline_dia2]
         self.images = [self.cross, self.o]
     
     def loadText(self):
+        ''' Loading all the text. Make sure that pygame is initialized as done in line 8 '''
         self.fontEngine = pygame.font.SysFont('Komika Axis', 15)
         self.playAgainText = self.fontEngine.render('Play Again', True, 'white')
         self.resetScoreText = self.fontEngine.render('Reset Score', True, 'white')
         self.drawText = pygame.transform.scale2x(self.fontEngine.render('DRAW', True, 'white'))
         self.text = [self.playAgainText, self.resetScoreText, self.drawText]
     
-    def handleClick(self, clicks):
+    def handleClick(self, clicks: list[int]):
+        ''' Function to handle the clicks made by user '''
         if self.matrix[clicks[0]-1][clicks[1]-1] != None or self.over:
             return
         self.matrix[clicks[0]-1][clicks[1]-1] = self.turn
@@ -46,6 +52,7 @@ class Game:
         self.checkGameOver()
     
     def checkGameOver(self):
+        ''' Checking Game Over after every move '''
         # Checking rows
         board = self.matrix
         for row in range(3):
@@ -74,18 +81,21 @@ class Game:
             self.score[0] += 1
         if self.over and self.winner == 'x':
             self.score[1] += 1
-        if any(None in row for row in self.matrix):
+        if any(None in row for row in self.matrix):    # Checking for an empty spot in the board
             return
-        elif not self.over:
+        elif not self.over:            # If the board is full amd game is not over, it is declared draw
             self.over, self.winner = True, 'draw'
     
-    def handleButtonClick(self, buttonNo):
+    def handleButtonClick(self, buttonNo: int):
+        ''' Function to handle button clicks '''
         if buttonNo == 1:
+            # Initializing just the game class using the old score
             self.__init__(self.score)
         if buttonNo == 2:
+            # Initializing just the game class using the new score
             self.score = [0,0]
 
-def draw(window: pygame.Surface, images, turn, matrix, over, winner, buttons, score, lines, text, gameOverMarkers):
+def draw(window: pygame.Surface, images: list[pygame.Surface], turn: string, matrix: list[list[(None, str)]], over: bool, winner: str | None, buttons: list[pygame.Rect], score: list[int], lines: list[pygame.Surface], text: list[pygame.Surface], gameOverMarkers):
     # Background and rectangles
     window.fill((91, 192, 222))
     for i in range(3):
@@ -97,7 +107,7 @@ def draw(window: pygame.Surface, images, turn, matrix, over, winner, buttons, sc
             if matrix[i][j] == 'o':
                 window.blit(images[1], (60+100*j, 160+100*i))
     
-    # Turn Displayer
+    # Turn Displayer ( set_alpha() sets the transparency )
     x_surface = images[0].copy()
     o_surface = images[1].copy()
     if turn == 'o':
@@ -145,12 +155,13 @@ def draw(window: pygame.Surface, images, turn, matrix, over, winner, buttons, sc
             window.blit(lines[3], redRect)
         if winner == 'draw':
             drawRect = text[2].get_rect()
-            drawRect.center = (200, 300)
+            drawRect.center = (200, 30)      # Draw should be displayed at (200, 30). Error in video was not needed
             window.blit(text[2], drawRect)
 
     pygame.display.update()
 
 def userClick():
+    ''' Handling the user clicks '''
     x, y = pygame.mouse.get_pos()
 
     # Checking x
@@ -180,11 +191,12 @@ def userClick():
         return [1]
     if x in range(225, 350) and y in range(475, 525):
         return [2]
-    
+
+    # If a valid cell is clicked, it is returned
     if row and col:
         return [row, col]
     
-    return None
+    return None        # If nothing is clicked None is returned
 
 def main():
     clock = pygame.time.Clock()
